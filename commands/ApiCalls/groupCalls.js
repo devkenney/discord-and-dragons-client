@@ -22,5 +22,31 @@ module.exports = {
     } catch (error) {
       console.error(error);
     }
+  },
+  async update(dm, description) {
+    try {
+      const response = await axios.put((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/${dm}`, {
+        description: description
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  async showByDm(dm) {
+    try {
+      const response = await axios.get((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/dm/${dm}`);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  async showByPc(pc) {
+    try {
+      const response = await axios.get((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/pc/${pc}`);
+      return response.data;
+    } catch(error) {
+      console.error(error);
+    }
   }
 }

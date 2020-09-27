@@ -1,21 +1,21 @@
 const apiCalls = require('./ApiCalls/groupCalls')
-const prefix = '%';
+let data = []
+const Discord = require('discord.js');
 
 module.exports = {
   name: 'group',
   description: 'base command for managing group actions',
-  usage: 'description, delete, create, addmember',
+  usage: 'description, delete, create, addmember, info',
   args: true,
   cooldown: 5,
-  async execute(message, args) {
+  async execute(message, args, prefix, client) {
+    const author = message.author.id;
     const baseArg = args.shift().toLowerCase();
     // =============
     // %group create
     // =============
     if (baseArg === 'create') {
-      const data = []
       args = args.join(' ');
-      author = message.author.id;
       const newGroupData = await apiCalls.create(args, author);
       console.log(newGroupData);
 
@@ -41,13 +41,65 @@ module.exports = {
       // %group delete
       // =============
     } else if (baseArg === 'delete') {
-      const author = message.author.id;
       const deletedData = await apiCalls.delete(author);
 
       if (deletedData.error) {
         return message.reply(deletedData.error)
       } else {
         return message.reply(deletedData.reply);
+      }
+      // ==================
+      // %group description
+      // ==================
+    } else if (baseArg === 'description') {
+      args = args.join(' ');
+      const descriptionResponse = await apiCalls.update(author, args);
+
+      if (descriptionResponse.error) {
+        return message.reply(descriptionResponse.error);
+      } else {
+        return message.reply(descriptionResponse.reply);
+      }
+      // ===========
+      // %group info
+      // ===========
+    } else if (baseArg === 'info') {
+      if (args[0].toLowerCase() === 'pc') {
+        const pcGroupResponse = await apiCalls.showByPc(author);
+        if (pcGroupResponse.error) {
+          message.reply(pcGroupResponse.error);
+        } else {
+          const replyEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(pcGroupResponse.title)
+            .setAuthor(pcGroupResponse.dungeonMaster.displayName)
+          return message.channel.send(replyEmbed);
+        }
+      } else if (args[0].toLowerCase() === 'dm') {
+        const dmGroupResponse = await apiCalls.showByDm(author)
+        data = dmGroupResponse.playerCharacters.map((member) => {
+          return message.guild.members.cache.get(member).displayName
+        })
+        if (data.length > 0) {
+          data = data.join(', ')
+        } else {
+          data = 'No player characters at the moment :('
+        }
+        if (dmGroupResponse.error) {
+          message.reply(dmGroupResponse.error);
+        } else {
+          const replyEmbed = await new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(dmGroupResponse.title)
+            .setAuthor(message.guild.members.cache.get(dmGroupResponse.dungeonMaster).displayName)
+            .setDescription(dmGroupResponse.description)
+            .addFields(
+              { name: 'Player Characters', value: data }
+            )
+          return message.channel.send(replyEmbed);
+        }
+      } else {
+        return message.channel.send(`This command accepts an argument of \`pc\` to show the group you are a part of **or** \`dm\` to show the group you own.`);
       }
     }
   }
