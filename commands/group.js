@@ -66,13 +66,26 @@ module.exports = {
     } else if (baseArg === 'info') {
       if (args[0].toLowerCase() === 'pc') {
         const pcGroupResponse = await apiCalls.showByPc(author);
+        data = pcGroupResponse.playerCharacters.map((member) => {
+          return message.guild.members.cache.get(member).displayName
+        })
+        if (data.length > 0) {
+          data = data.join(', ')
+        } else {
+          data = 'No player characters at the moment :('
+        }
         if (pcGroupResponse.error) {
           message.reply(pcGroupResponse.error);
         } else {
-          const replyEmbed = new Discord.MessageEmbed()
+          const replyEmbed = await new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle(pcGroupResponse.title)
-            .setAuthor(pcGroupResponse.dungeonMaster.displayName)
+            .setAuthor(message.guild.members.cache.get(pcGroupResponse.dungeonMaster).displayName)
+            .setDescription(pcGroupResponse.description)
+            .addFields({
+              name: 'Player Characters',
+              value: data
+            })
           return message.channel.send(replyEmbed);
         }
       } else if (args[0].toLowerCase() === 'dm') {
@@ -93,9 +106,10 @@ module.exports = {
             .setTitle(dmGroupResponse.title)
             .setAuthor(message.guild.members.cache.get(dmGroupResponse.dungeonMaster).displayName)
             .setDescription(dmGroupResponse.description)
-            .addFields(
-              { name: 'Player Characters', value: data }
-            )
+            .addFields({
+              name: 'Player Characters',
+              value: data
+            })
           return message.channel.send(replyEmbed);
         }
       } else {
