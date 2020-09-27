@@ -1,14 +1,14 @@
 const apiCalls = require('./ApiCalls/groupCalls')
-let data = []
 const Discord = require('discord.js');
 
 module.exports = {
   name: 'group',
   description: 'base command for managing group actions',
-  usage: 'description, delete, create, addmember, info',
+  usage: 'description, delete, create, add, info',
   args: true,
+  data: [],
   cooldown: 5,
-  async execute(message, args, prefix, client) {
+  async execute(message, args, prefix) {
     const author = message.author.id;
     const baseArg = args.shift().toLowerCase();
     // =============
@@ -24,12 +24,12 @@ module.exports = {
       } else {
         message.reply(`The group name you have selected is: **${args}**! a DM has just been sent to you with the command you need to run to add PCs to your group!`)
 
-        data.push('To add Player Characters to your group, run the command:');
-        data.push(`${prefix}group add <@mention of user>`);
-        data.push('To add a description to your group, use the command:');
-        data.push(`${prefix}group description <description goes here>`)
+        this.data.push('To add Player Characters to your group, run the command:');
+        this.data.push(`${prefix}group add <@mention of user>`);
+        this.data.push('To add a description to your group, use the command:');
+        this.data.push(`${prefix}group description <description goes here>`)
 
-        return message.author.send(data, {
+        return message.author.send(this.data, {
             split: true
           })
           .catch(error => {
@@ -53,7 +53,7 @@ module.exports = {
       // ==================
     } else if (baseArg === 'description') {
       args = args.join(' ');
-      const descriptionResponse = await apiCalls.update(author, args);
+      const descriptionResponse = await apiCalls.updateDescription(author, args);
 
       if (descriptionResponse.error) {
         return message.reply(descriptionResponse.error);
@@ -66,13 +66,13 @@ module.exports = {
     } else if (baseArg === 'info') {
       if (args[0].toLowerCase() === 'pc') {
         const pcGroupResponse = await apiCalls.showByPc(author);
-        data = pcGroupResponse.playerCharacters.map((member) => {
-          return message.guild.members.cache.get(member).displayName
+        this.data = pcGroupResponse.playerCharacters.map((member) => {
+          return message.guild.members.cache.get(member.id).displayName
         })
-        if (data.length > 0) {
-          data = data.join(', ')
+        if (this.data.length > 0) {
+          this.data = this.data.join(', ')
         } else {
-          data = 'No player characters at the moment :('
+          this.data = 'No player characters at the moment :('
         }
         if (pcGroupResponse.error) {
           message.reply(pcGroupResponse.error);
@@ -84,19 +84,19 @@ module.exports = {
             .setDescription(pcGroupResponse.description)
             .addFields({
               name: 'Player Characters',
-              value: data
+              value: this.data
             })
           return message.channel.send(replyEmbed);
         }
       } else if (args[0].toLowerCase() === 'dm') {
         const dmGroupResponse = await apiCalls.showByDm(author)
-        data = dmGroupResponse.playerCharacters.map((member) => {
-          return message.guild.members.cache.get(member).displayName
+        this.data = dmGroupResponse.playerCharacters.map((member) => {
+          return message.guild.members.cache.get(member.id).displayName
         })
-        if (data.length > 0) {
-          data = data.join(', ')
+        if (this.data.length > 0) {
+          this.data = this.data.join(', ')
         } else {
-          data = 'No player characters at the moment :('
+          this.data = 'No player characters at the moment :('
         }
         if (dmGroupResponse.error) {
           message.reply(dmGroupResponse.error);
@@ -108,12 +108,25 @@ module.exports = {
             .setDescription(dmGroupResponse.description)
             .addFields({
               name: 'Player Characters',
-              value: data
+              value: this.data
             })
           return message.channel.send(replyEmbed);
         }
       } else {
         return message.channel.send(`This command accepts an argument of \`pc\` to show the group you are a part of **or** \`dm\` to show the group you own.`);
+      }
+      // ==========
+      // %group add
+      // ==========
+    } else if (baseArg === 'add') {
+      try {
+      if (message.mentions.users.first().id) {
+        const playerId = message.mentions.users.first().id;
+        const addPlayerResponse = await apiCalls.updatePlayers(author, playerId);
+        return message.channel.send(addPlayerResponse);
+      }
+      } catch (error) {
+        return message.channel.send('The argument for that command must be an @ mention of another user in the channel!');
       }
     }
   }

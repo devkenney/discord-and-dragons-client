@@ -23,11 +23,21 @@ module.exports = {
       console.error(error);
     }
   },
-  async update(dm, description) {
+  async updateDescription(dm, description) {
     try {
-      const response = await axios.put((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/${dm}`, {
+      const response = await axios.put((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/description/${dm}`, {
         description: description
       });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  async updatePlayers(dm, player) {
+    try {
+      const response = await axios.put((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/players/${dm}`, {
+        playerId: player
+      })
       return response.data;
     } catch (error) {
       console.error(error);
@@ -44,6 +54,7 @@ module.exports = {
   async showByPc(pc) {
     try {
       const response = await axios.get((process.env.BACKEND_URL || 'http://localhost:3000') + `/groups/pc/${pc}`);
+      console.log(response.data)
       return response.data;
     } catch(error) {
       console.error(error);
