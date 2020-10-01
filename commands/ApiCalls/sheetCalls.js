@@ -4,7 +4,7 @@ const axios = require('axios');
 module.exports = {
   async create(pc) {
     try {
-    const response = axios.post((process.env.BACKEND_URL || 'http://localhost:3000') + `/sheets`, {
+    const response = await axios.post((process.env.BACKEND_URL || 'http://localhost:3000') + `/sheets`, {
       playerId: pc
     })
     return response.data

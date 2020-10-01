@@ -1,4 +1,4 @@
-const apiCalls = require('./commands/sheetCalls.js');
+const apiCalls = require('./ApiCalls/sheetCalls.js');
 const Discord = require('discord.js');
 
 module.exports = {
@@ -16,7 +16,9 @@ module.exports = {
     // =============
 
     if (baseArg === 'create') {
-      const createResponse = apiCalls.create(author)
+      console.log('test');
+      const createResponse = await apiCalls.create(author)
+      console.log(createResponse);
       if (createResponse.error) {
         message.channel.send(createResponse.error);
       } else {
