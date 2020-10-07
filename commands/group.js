@@ -91,7 +91,7 @@ module.exports = {
       } else if (args[0].toLowerCase() === 'dm') {
         const dmGroupResponse = await apiCalls.showByDm(author)
         this.data = dmGroupResponse.playerCharacters.map((member) => {
-          return message.guild.members.cache.get(member.id).displayName
+          return message.guild.members.cache.get(member.playerId).displayName
         })
         if (this.data.length > 0) {
           this.data = this.data.join(', ')
